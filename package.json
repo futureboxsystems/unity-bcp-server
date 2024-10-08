@@ -1,0 +1,8 @@
+{
+    "name": "org.missionpinball.unity-bcp-server",
+    "version": "1.4.0",
+    "displayName": "Unity BCP Server",
+    "description": "Backbox Control Protocol (BCP) Server for Unity",
+    "unity": "2018.1",
+    "license": "MIT"
+}
