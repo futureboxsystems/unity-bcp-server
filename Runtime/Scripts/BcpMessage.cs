@@ -1,11 +1,11 @@
-using UnityEngine;
 using System;
 using System.Collections;
-using System.Collections.Specialized;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 using System.Text.RegularExpressions;
 using BCP.SimpleJSON;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace BCP
@@ -16,7 +16,7 @@ namespace BCP
     public class BcpMessage
     {
         /// <summary>
-        /// An optional message identifier used to track individual messages and their replies (replies 
+        /// An optional message identifier used to track individual messages and their replies (replies
         /// will use the same message identifier as the original message).
         /// </summary>
         public string Id;
@@ -202,19 +202,14 @@ namespace BCP
         {
             if (value.ToLower().StartsWith("bool:"))
                 return new JSONBool(value.Substring(5));
-
             else if (value.ToLower().StartsWith("nonetype:"))
                 return JSONNull.CreateOrGet();
-
             else if (value.ToLower().StartsWith("int:"))
                 return new JSONNumber(value.Substring(4));
-
             else if (value.ToLower().StartsWith("float:"))
                 return new JSONNumber(value.Substring(6));
-
             else
                 return new JSONString(value);
-
         }
 
         /// <summary>
@@ -267,9 +262,11 @@ namespace BCP
                             }
                         else
                         {
-                            bcpMessage.Parameters.Add(name, BcpMessage.ConvertBcpParameterStringToNode(value));
+                            bcpMessage.Parameters.Add(
+                                name,
+                                BcpMessage.ConvertBcpParameterStringToNode(value)
+                            );
                         }
-                            
                     }
                     else
                     {
@@ -281,10 +278,13 @@ namespace BCP
                 // Add JSON-encoded parameters to the message parameters
                 if (bcpMessage.Parameters["json"].IsObject)
                 {
-                    foreach (KeyValuePair<string, JSONNode> parameter in bcpMessage.Parameters["json"].AsObject)
+                    foreach (
+                        KeyValuePair<string, JSONNode> parameter in bcpMessage
+                            .Parameters["json"]
+                            .AsObject
+                    )
                         bcpMessage.Parameters.Add(parameter.Key, parameter.Value);
                 }
-
             }
             else
             {
@@ -302,7 +302,11 @@ namespace BCP
         /// <param name="controllerName">The name of the controller sending the message.</param>
         /// <param name="controllerVersion">The version of the controller sending the message.</param>
         /// <returns></returns>
-        public static BcpMessage HelloMessage(string version, string controllerName, string controllerVersion)
+        public static BcpMessage HelloMessage(
+            string version,
+            string controllerName,
+            string controllerVersion
+        )
         {
             BcpMessage message = new BcpMessage("hello");
             message.Parameters.Add("version", new JSONString(version));
@@ -415,7 +419,6 @@ namespace BCP
         public static BcpMessage MonitorPlayerVarsMessage()
         {
             return new BcpMessage("monitor_start", "category", "player_vars");
-
         }
 
         /// <summary>
@@ -478,7 +481,6 @@ namespace BCP
         {
             return new BcpMessage("trigger", "name", name);
         }
-
     }
 
     /// <summary>
@@ -504,7 +506,7 @@ namespace BCP
         /// </summary>
         /// <param name="message">The message.</param>
         public BcpMessageException(string message)
-            :base(message)
+            : base(message)
         {
             _bcpMessage = null;
         }
@@ -526,7 +528,7 @@ namespace BCP
         /// <param name="message">The message.</param>
         /// <param name="innerException">The inner exception.</param>
         public BcpMessageException(string message, Exception innerException)
-            :base(message, innerException)
+            : base(message, innerException)
         {
             _bcpMessage = null;
         }
@@ -562,7 +564,8 @@ namespace BCP
                 description.AppendFormat(" ---> {0}", this.InnerException);
                 description.AppendFormat(
                     "{0}   --- End of inner exception stack trace ---{0}",
-                    Environment.NewLine);
+                    Environment.NewLine
+                );
             }
 
             description.Append(this.StackTrace);

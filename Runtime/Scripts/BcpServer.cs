@@ -1,16 +1,17 @@
-﻿using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using System;
-using System.Text;
+﻿using System;
 using System.Collections;
 using System.Collections.Specialized;
 using System.IO;
-using System.Threading;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 
 namespace BCP
 {
@@ -70,12 +71,8 @@ namespace BCP
         /// </value>
         public bool ClientConnected
         {
-            get
-            {
-                return (_client != null && _client.Connected);
-            }
+            get { return (_client != null && _client.Connected); }
         }
-
 
         /// <summary>
         /// Called when the script instance is being loaded.
@@ -85,10 +82,9 @@ namespace BCP
             // Save a reference to the BcpServer component as our singleton instance
             Instance = this;
             _listeningForClient = false;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             EditorPlayMode.PlayModeChanged += OnPlayModeChanged;
-    #endif
-
+#endif
         }
 
         /// <summary>
@@ -96,11 +92,11 @@ namespace BCP
         /// </summary>
         public void OnDisable()
         {
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             EditorPlayMode.PlayModeChanged -= OnPlayModeChanged;
-    #endif
+#endif
         }
-        
+
         /// <summary>
         /// Initializes the BCP server and launches a reader worker thread to receive message from the MPF pin controller.
         /// </summary>
@@ -114,14 +110,16 @@ namespace BCP
             // Create TCP/IP socket
             _listeningForClient = true;
             _listener = new TcpListener(IPAddress.Any, port);
-            BcpLogger.Trace("BcpServer: Establishing local endpoint for the socket (" + _listener.LocalEndpoint.ToString() + ")");
+            BcpLogger.Trace(
+                "BcpServer: Establishing local endpoint for the socket ("
+                    + _listener.LocalEndpoint.ToString()
+                    + ")"
+            );
 
             Thread listenerThread = new Thread(new ThreadStart(ListenForConnection));
             listenerThread.Start();
             BcpLogger.Trace("BcpServer: Waiting for a connection...");
-
         }
-        
 
         /// <summary>
         /// Finalizes an instance of the <see cref="BcpServer"/> class.  Closes the BCP server if it is running.
@@ -131,13 +129,12 @@ namespace BCP
             Close();
         }
 
-
         /// <summary>
         /// OnGUI is called for rendering and handling GUI events.
         /// </summary>
         void OnGUI()
         {
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             // Display button to shutdown the server application (only when running in the editor)
             if (EditorApplication.isPlaying)
             {
@@ -147,7 +144,7 @@ namespace BCP
                     EditorApplication.isPlaying = false;
                 }
             }
-    #endif
+#endif
 
             // Display waiting for connection message if client is not currently connected
             if (!ClientConnected)
@@ -166,12 +163,16 @@ namespace BCP
                 Rect windowRect0 = new Rect(windowX, windowY, windowWidth, windowHeight);
 
                 // Display waiting for connection popup window
-                GUILayout.Window(0, windowRect0, WaitForConnectionMessage, "Mission Pinball Framework");
+                GUILayout.Window(
+                    0,
+                    windowRect0,
+                    WaitForConnectionMessage,
+                    "Mission Pinball Framework"
+                );
             }
-
         }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         /// <summary>
         /// Event handler called when Editor play mode changes (only applies when running in the Editor).
         /// </summary>
@@ -180,12 +181,13 @@ namespace BCP
         private static void OnPlayModeChanged(PlayModeState currentMode, PlayModeState changedMode)
         {
             // Shut down the server if the editor is stopping (avoid hanging worker threads and locking up Unity)
-            if (changedMode == PlayModeState.Stopped) {
+            if (changedMode == PlayModeState.Stopped)
+            {
                 BcpLogger.Trace("BcpServer: Editor stopping - shutting down BCP Server");
-                Instance.Close ();
+                Instance.Close();
             }
         }
-    #endif
+#endif
 
         /// <summary>
         /// Window function to display waiting for connection message.
@@ -204,7 +206,6 @@ namespace BCP
 
             GUILayout.EndVertical();
         }
-
 
         /// <summary>
         /// Listens for a connection from MPF pin controller client.
@@ -233,7 +234,9 @@ namespace BCP
                         _client = _listener.AcceptTcpClient();
 
                         // Create a thread to handle communication with connected client
-                        Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClientCommunications));
+                        Thread clientThread = new Thread(
+                            new ParameterizedThreadStart(HandleClientCommunications)
+                        );
                         clientThread.Start(_client);
                     }
                 }
@@ -251,8 +254,8 @@ namespace BCP
         /// </summary>
         /// <param name="client">The client.</param>
         /// <remarks>
-        /// This function runs in its own thread and receives all messages from the MPF pin controller client.  These messages are 
-        /// posted to a message queue in a thread-safe manner for the main Unity thread to process them.  The use of a separate 
+        /// This function runs in its own thread and receives all messages from the MPF pin controller client.  These messages are
+        /// posted to a message queue in a thread-safe manner for the main Unity thread to process them.  The use of a separate
         /// thread allows the use of blocking methods (simpler) when communicating with the MPF client.
         /// </remarks>
         private void HandleClientCommunications(object client)
@@ -274,7 +277,7 @@ namespace BCP
                 {
                     // Blocks until a client sends a message
                     bytesRead = clientStream.Read(buffer, 0, 1024);
-                
+
                     if (bytesRead > 0)
                     {
                         messageBuffer.Append(Encoding.UTF8.GetString(buffer, 0, bytesRead));
@@ -283,15 +286,27 @@ namespace BCP
                         // If not complete, save the buffer contents and continue to read packets, appending
                         // to saved buffer.  Once completed, convert to a BCP message.
                         int terminationCharacterPos = 0;
-                        while ((terminationCharacterPos = messageBuffer.ToString().IndexOf("\n")) > -1)
+                        while (
+                            (terminationCharacterPos = messageBuffer.ToString().IndexOf("\n")) > -1
+                        )
                         {
-                            BcpLogger.Trace("BcpServer: >>>>>>>>>>>>>> Received raw message: " + messageBuffer.ToString(0, terminationCharacterPos + 1));
+                            BcpLogger.Trace(
+                                "BcpServer: >>>>>>>>>>>>>> Received raw message: "
+                                    + messageBuffer.ToString(0, terminationCharacterPos + 1)
+                            );
 
                             // Convert received data to a BcpMessage
-                            BcpMessage message = BcpMessage.CreateFromRawMessage(messageBuffer.ToString(0, terminationCharacterPos + 1));
+                            BcpMessage message = BcpMessage.CreateFromRawMessage(
+                                messageBuffer.ToString(0, terminationCharacterPos + 1)
+                            );
                             if (message != null)
                             {
-                                BcpLogger.Trace("BcpServer: >>>>>>>>>>>>>> Received \"" + message.Command + "\" message: " + message.ToString());
+                                BcpLogger.Trace(
+                                    "BcpServer: >>>>>>>>>>>>>> Received \""
+                                        + message.Command
+                                        + "\" message: "
+                                        + message.ToString()
+                                );
 
                                 // Add BCP message to the queue to be processed
                                 BcpMessageManager.Instance.AddMessageToQueue(message);
@@ -320,7 +335,6 @@ namespace BCP
             tcpClient.Close();
         }
 
-
         /// <summary>
         /// Closes the BCP Server.
         /// </summary>
@@ -331,7 +345,7 @@ namespace BCP
             try
             {
                 _listeningForClient = false;
-                
+
                 if (ClientConnected)
                 {
                     // Send goodbye message to connected client
@@ -341,14 +355,11 @@ namespace BCP
 
                 _listener.Stop();
             }
-            catch
-            {
-            }
+            catch { }
 
             BcpLogger.Trace("BcpServer: Close finished");
         }
 
-        
         /// <summary>
         /// Sends the specified BCP message to the MPF pin controller.
         /// </summary>
@@ -357,7 +368,7 @@ namespace BCP
         /// This function is called by the main Unity thread and does not run in its own thread.  It will block the rest of the application
         /// while sending (should be a quick process unless MPF client has a communication failure).
         /// </remarks>
-        public bool Send(BcpMessage message) 
+        public bool Send(BcpMessage message)
         {
             if (!ClientConnected)
                 return false;
@@ -371,18 +382,24 @@ namespace BCP
                 {
                     clientStream.Write(packet, 0, length);
                     clientStream.Flush();
-                    BcpLogger.Trace("BcpServer: <<<<<<<<<<<<<< Sending \"" + message.Command + "\" message: " + message.ToString());
+                    BcpLogger.Trace(
+                        "BcpServer: <<<<<<<<<<<<<< Sending \""
+                            + message.Command
+                            + "\" message: "
+                            + message.ToString()
+                    );
                 }
             }
             catch (Exception e)
             {
-                BcpLogger.Trace("BcpServer: Sending \"" + message.Command + "\" message FAILED: " + e.ToString());
+                BcpLogger.Trace(
+                    "BcpServer: Sending \"" + message.Command + "\" message FAILED: " + e.ToString()
+                );
                 return false;
             }
 
             return true;
         }
-
 
         /// <summary>
         /// Sends a DMD frame to the MPF pin controller to be output to hardware.
@@ -390,11 +407,11 @@ namespace BCP
         /// <param name="frameData">The DMD frame data (must be 4096 bytes).</param>
         /// <returns></returns>
         /// <remarks>
-        /// Used by the media controller to send a DMD frame to the pin controller which the pin controller displays on the physical DMD. 
+        /// Used by the media controller to send a DMD frame to the pin controller which the pin controller displays on the physical DMD.
         /// Note that this command does not used named parameters, rather, the data is sent after the command, like this:
         /// dmd_frame?<raw byte string>
         /// This command is a special one in that it’s sent with ASCII encoding instead of UTF-8.
-        /// The data is a raw byte string that is exactly 4096 bytes. (1 bytes per pixel, 128×32 DMD resolution = 4096 pixels.) The 4 low bits 
+        /// The data is a raw byte string that is exactly 4096 bytes. (1 bytes per pixel, 128×32 DMD resolution = 4096 pixels.) The 4 low bits
         /// of each byte are the intensity (0-15), and the 4 high bits are ignored.
         /// </remarks>
         public bool SendDmdFrame(byte[] frameData)
@@ -405,7 +422,12 @@ namespace BCP
             try
             {
                 if (frameData.Length != 4096)
-                    throw new ArgumentException("Frame data is not the correct length (" + frameData.Length + " bytes, expected 4096 bytes)", "frameData");
+                    throw new ArgumentException(
+                        "Frame data is not the correct length ("
+                            + frameData.Length
+                            + " bytes, expected 4096 bytes)",
+                        "frameData"
+                    );
 
                 NetworkStream clientStream = _client.GetStream();
 
@@ -417,7 +439,11 @@ namespace BCP
                 clientStream.Write(messageTermination, 0, messageTermination.Length);
                 clientStream.Flush();
 
-                BcpLogger.Trace("BcpServer: <<<<<<<<<<<<<< Sending \"dmd_frame\" message: frame data (" + frameData.Length + " bytes)");
+                BcpLogger.Trace(
+                    "BcpServer: <<<<<<<<<<<<<< Sending \"dmd_frame\" message: frame data ("
+                        + frameData.Length
+                        + " bytes)"
+                );
             }
             catch (Exception e)
             {
@@ -427,10 +453,9 @@ namespace BCP
 
             return true;
         }
-        
     }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     /// <summary>
     /// The Unity Editor play mode
     /// </summary>
@@ -438,7 +463,7 @@ namespace BCP
     {
         Stopped,
         Playing,
-        Paused
+        Paused,
     }
 
     /// <summary>
@@ -489,13 +514,15 @@ namespace BCP
             EditorApplication.isPlaying = false;
         }
 
-
         /// <summary>
         /// Called when the Unity Editor play mode is changed.
         /// </summary>
         /// <param name="currentState">Current state of the Unity Editor.</param>
         /// <param name="changedState">New state of the Unity Editor.</param>
-        private static void OnPlayModeChanged(PlayModeState currentState, PlayModeState changedState)
+        private static void OnPlayModeChanged(
+            PlayModeState currentState,
+            PlayModeState changedState
+        )
         {
             if (PlayModeChanged != null)
                 PlayModeChanged(currentState, changedState);
@@ -510,43 +537,42 @@ namespace BCP
             var changedState = PlayModeState.Stopped;
             switch (_currentState)
             {
-            case PlayModeState.Stopped:
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
-                {
-                    changedState = PlayModeState.Playing;
-                }
-                break;
-            case PlayModeState.Playing:
-                if (EditorApplication.isPaused)
-                {
-                    changedState = PlayModeState.Paused;
-                }
-                else
-                {
-                    changedState = PlayModeState.Stopped;
-                }
-                break;
-            case PlayModeState.Paused:
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
-                {
-                    changedState = PlayModeState.Playing;
-                }
-                else
-                {
-                    changedState = PlayModeState.Stopped;
-                }
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+                case PlayModeState.Stopped:
+                    if (EditorApplication.isPlayingOrWillChangePlaymode)
+                    {
+                        changedState = PlayModeState.Playing;
+                    }
+                    break;
+                case PlayModeState.Playing:
+                    if (EditorApplication.isPaused)
+                    {
+                        changedState = PlayModeState.Paused;
+                    }
+                    else
+                    {
+                        changedState = PlayModeState.Stopped;
+                    }
+                    break;
+                case PlayModeState.Paused:
+                    if (EditorApplication.isPlayingOrWillChangePlaymode)
+                    {
+                        changedState = PlayModeState.Playing;
+                    }
+                    else
+                    {
+                        changedState = PlayModeState.Stopped;
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            
+
             // Fire PlayModeChanged event.
             OnPlayModeChanged(_currentState, changedState);
-            
+
             // Set current state.
             _currentState = changedState;
         }
-        
     }
-    #endif
+#endif
 }

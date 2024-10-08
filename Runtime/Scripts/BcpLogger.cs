@@ -1,8 +1,8 @@
-using UnityEngine;
 using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
+using UnityEngine;
 
 namespace BCP
 {
@@ -57,7 +57,6 @@ namespace BCP
         /// </summary>
         void Awake()
         {
-
             if (Singleton != null)
             {
                 UnityEngine.Debug.LogError("Multiple BcpLogger Singletons exist!");
@@ -70,7 +69,6 @@ namespace BCP
             if (BcpLogger.Instance.Enabled)
                 OutputStream = new StreamWriter(LogFile, false);
         }
-
 
         /// <summary>
         /// Called when the object is destroyed.  Closes the output stream.
@@ -98,7 +96,6 @@ namespace BCP
 
             if (OutputStream != null)
             {
-
                 OutputStream.WriteLine(message);
                 OutputStream.Flush();
             }
@@ -119,11 +116,9 @@ namespace BCP
             if (BcpLogger.Instance != null)
                 if (BcpLogger.Instance.Enabled)
                     BcpLogger.Instance.Write(Message);
-            else
-                // Fall back if the debugging system hasn't been initialized yet.
-                UnityEngine.Debug.Log(Message);
+                else
+                    // Fall back if the debugging system hasn't been initialized yet.
+                    UnityEngine.Debug.Log(Message);
         }
-
-
     }
 }
