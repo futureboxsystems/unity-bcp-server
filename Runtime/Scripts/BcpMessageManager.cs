@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 using BCP.SimpleJSON;
 using UnityEngine;
-using UnityEngine.Networking;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
